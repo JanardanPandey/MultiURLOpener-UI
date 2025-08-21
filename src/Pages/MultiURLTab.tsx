@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import GridLayout, { Layout, WidthProvider } from "react-grid-layout";
+import GridLayout, { WidthProvider } from "react-grid-layout";
+import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
@@ -64,7 +65,7 @@ const MultiURLTab: React.FC = () => {
     // Remove a block
   const handleRemove = (index: number) => {
     const newUrls = urls.filter((_, i) => i !== index);
-    const newLayout = layout.filter((item) => item.i !== index.toString());
+    // const newLayout = layout.filter((item) => item.i !== index.toString());
 
     // Re-index layout after removal
     const reIndexedLayout = newUrls.map((url, i) => ({
