@@ -7,7 +7,7 @@ import MultiURLTab from "./Pages/MultiURLTab";
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/MultiURLOpener-UI">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/multi-url" element={<MultiURLTab />} />
