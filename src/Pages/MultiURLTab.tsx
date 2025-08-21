@@ -84,6 +84,7 @@ const MultiURLTab: React.FC = () => {
   };
   return (
     <div className="p-2 w-full">
+      <div className="text-red-500">If You are not able to access any added url, please contact to janardan pandey(9555554731)</div>
       {/* Add Button (top-right corner) */}
       <div className="flex justify-end mb-2">
         <button
