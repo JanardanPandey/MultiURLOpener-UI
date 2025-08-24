@@ -9,6 +9,7 @@ const ResponsiveGridLayout = WidthProvider(GridLayout);
 const MultiURLTab: React.FC = () => {
   const [urls, setUrls] = useState<string[]>([]);
   const [layout, setLayout] = useState<Layout[]>([]);
+  const [fullscreenUrl, setFullscreenUrl] = useState<string | null>(null);
 
   // Load URLs + Layout from localStorage
   useEffect(() => {
@@ -20,12 +21,12 @@ const MultiURLTab: React.FC = () => {
     if (storedLayout.length > 0) {
       setLayout(storedLayout);
     } else {
-      // Default layout (2 columns per row)
-      const defaultLayout = storedURLs.map((url: string, i: number) => ({
+      // Default layout in 2-column pattern
+      const defaultLayout = storedURLs.map((url: string, index: number) => ({
         i: url.toString(),
-        x: i % 2,
-        y: Math.floor(i / 2),
-        w: 1,
+        x: (index % 2) * 2,
+        y: Math.floor(index / 2),
+        w: 2,
         h: 2,
       }));
       setLayout(defaultLayout);
@@ -44,16 +45,19 @@ const MultiURLTab: React.FC = () => {
     if (!newUrl) return;
 
     const newUrls = [...urls, newUrl];
-    const newLayout = [
-      ...layout,
-      {
-        i: newUrl,
-        x: (newUrls.length - 1) % 2,
-        y: Math.floor((newUrls.length - 1) / 2),
-        w: 1,
-        h: 2,
-      },
-    ];
+    const index = newUrls.length - 1;
+
+    const newLayoutItem: Layout = {
+      i: newUrl,
+      x: (index % 2) * 2,
+      y: Math.floor(index / 2),
+      w: 2,
+      h: 2,
+    };
+
+    const newLayout = [...layout, newLayoutItem].sort(
+      (a, b) => a.y - b.y || a.x - b.x
+    );
 
     setUrls(newUrls);
     setLayout(newLayout);
@@ -62,28 +66,25 @@ const MultiURLTab: React.FC = () => {
     localStorage.setItem("layout", JSON.stringify(newLayout));
   };
 
-    // Remove a block
-  const handleRemove = (index: number) => {
-    const newUrls = urls.filter((_, i) => i !== index);
-    // const newLayout = layout.filter((item) => item.i !== index.toString());
-
-    // Re-index layout after removal
-    const reIndexedLayout = newUrls.map((url, i) => ({
-      i: url,
-      x: i % 2,
-      y: Math.floor(i / 2),
-      w: 1,
-      h: 2,
-    }));
+  // Remove a block
+  const handleRemove = (url: string) => {
+    const newUrls = urls.filter((u) => u !== url);
+    const newLayout = layout.filter((item) => item.i !== url);
 
     setUrls(newUrls);
-    setLayout(reIndexedLayout);
+    setLayout(newLayout);
 
     localStorage.setItem("urls", JSON.stringify(newUrls));
-    localStorage.setItem("layout", JSON.stringify(reIndexedLayout));
+    localStorage.setItem("layout", JSON.stringify(newLayout));
   };
+
   return (
     <div className="p-2 w-full">
+      <div className="text-red-500 mb-2">
+        If You are not able to access any added url, please contact to
+        janardanpandey0510@gmail.com
+      </div>
+
       {/* Add Button (top-right corner) */}
       <div className="flex justify-end mb-2">
         <button
@@ -93,30 +94,52 @@ const MultiURLTab: React.FC = () => {
           ➕ Add URL
         </button>
       </div>
+
       <ResponsiveGridLayout
         className="layout"
         layout={layout}
-        cols={2}              // 2 columns
-        rowHeight={250}       // row height
+        cols={4}
+        rowHeight={250}
         onLayoutChange={handleLayoutChange}
         draggableHandle=".drag-handle"
-        isBounded={false}      // prevent dragging outside
-        autoSize={true}       // auto adjust height
+        isBounded={false}
+        autoSize={false}
+        compactType={null} // keep gaps, no auto compact
       >
         {urls.map((url, index) => (
           <div
-            key={index}
+            key={url}
             className="bg-white shadow-md rounded-lg overflow-hidden relative"
           >
-            <div className="flex items-center justify-between bg-gray-200 px-2  py-1 text-xs">
-              <div className="drag-handle cursor-move w-full">URL: {url}</div>
+            <div className="flex items-center justify-between bg-gray-200 px-2 py-1 text-xs gap-2">
+              <div className="drag-handle cursor-move flex-1">URL: {url}</div>
+
+              {/* Open in fullscreen */}
               <button
-                onClick={() => handleRemove(index)}
+                onClick={() => setFullscreenUrl(url)}
+                className="text-blue-500 font-bold hover:text-blue-700"
+                title="Open fullscreen"
+              >
+                🔳
+              </button>
+
+              {/* Open in new tab */}
+              <button
+                onClick={() => window.open(url, "_blank")}
+                className="text-green-500 font-bold hover:text-green-700"
+                title="Open in new tab"
+              >
+                ↗️
+              </button>
+
+              {/* Remove */}
+              <button
+                onClick={() => handleRemove(url)}
                 className="text-red-500 font-bold hover:text-red-700"
+                title="Remove"
               >
                 ✕
               </button>
-
             </div>
             <iframe
               src={url}
@@ -126,6 +149,28 @@ const MultiURLTab: React.FC = () => {
           </div>
         ))}
       </ResponsiveGridLayout>
+
+      {/* Fullscreen Modal */}
+      {fullscreenUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white w-[90%] h-[90%] rounded-lg shadow-lg relative flex flex-col">
+            <div className="flex justify-between items-center bg-gray-800 text-white px-3 py-2">
+              <span>{fullscreenUrl}</span>
+              <button
+                onClick={() => setFullscreenUrl(null)}
+                className="text-red-400 hover:text-red-600 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <iframe
+              src={fullscreenUrl}
+              title="Fullscreen View"
+              className="flex-1 border-0"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
