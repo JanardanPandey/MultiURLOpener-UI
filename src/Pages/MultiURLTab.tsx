@@ -103,8 +103,8 @@ const MultiURLTab: React.FC = () => {
         onLayoutChange={handleLayoutChange}
         draggableHandle=".drag-handle"
         isBounded={false}
-        autoSize={false}
-        compactType={null} // keep gaps, no auto compact
+        autoSize={true}
+        compactType={"vertical"} // keep gaps, no auto compact >> "horizontal", "vertical", null
       >
         {urls.map((url, index) => (
           <div
